@@ -16,7 +16,7 @@ function CartShowItems({ item }) {
       
       {/* Product Image */}
       <img
-        src={item.image}
+        src={item.thumbnail || item.images?.[0]}
         alt={item.title}
         className="w-20 h-20 object-contain cursor-pointer"
         onClick = {()=>{handleClickImage(item)}}

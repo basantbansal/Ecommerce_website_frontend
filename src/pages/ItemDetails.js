@@ -75,7 +75,7 @@ function ItemDetails() {
           {/* IMAGE SECTION */}
           <div className="bg-white rounded-2xl shadow p-8 flex items-center justify-center">
             <img
-              src={item.image}
+              src={item.thumbnail || item.images?.[0]}
               alt={item.title}
               className="max-h-[450px] object-contain"
             />

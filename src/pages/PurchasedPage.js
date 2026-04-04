@@ -60,7 +60,7 @@ const navigate = useNavigate();
                 <div className="col-span-3 flex items-center gap-4">
                   <img
                     onClick = {()=>handleClickImage(item)}
-                    src={item.image}
+                    src={item.thumbnail || item.images?.[0]}
                     alt={item.title}
                     className="w-14 h-14 object-contain cursor-pointer"
                   />
