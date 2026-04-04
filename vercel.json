@@ -1,5 +1,5 @@
-{ // vercel.json tells Vercel how to serve our app and handle routing for example when we refresh the page on a route other than the home page we want to make sure it serves index.html so that our React app can handle the routing
-  "rewrites": [
+{
+"rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
