@@ -89,14 +89,18 @@ function NavigationHeader() {
                     )}
 
                     {/* Logo */}
-                    <div onClick={handleClick("/ShowMe")} className="cursor-pointer select-none">
-                        <img
-                            src={logo}
-                            alt="Amazing logo"
-                            className="h-9 w-auto transition-transform duration-200 hover:scale-105"
-                        />
-                    </div>
-
+                        <a 
+                            href="https://www.youtube.com" 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="cursor-pointer select-none"
+                        >
+                            <img
+                                src={logo}
+                                alt="Amazing logo"
+                                className="h-9 w-auto transition-transform duration-200 hover:scale-105"
+                            />
+                        </a>
                 </div>
             </div>
         </header>
