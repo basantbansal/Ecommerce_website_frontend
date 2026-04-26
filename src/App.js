@@ -10,6 +10,7 @@ import PurchasedPage from './pages/PurchasedPage';
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage"
+import SellerPage from "./pages/SellerPage"
 // import Portfolio from "./pages/Portfolio";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
         <Route path="/Purchased" element={<PurchasedPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/seller" element={<SellerPage />} />
         {/* <Route path="/ShowMe" element={<ShowMe />} /> */}
       </Routes>
     </>

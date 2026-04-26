@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { useUser } from "../context/user.js"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 
 function LoginPage() {
-    const [formData, setFormData] = useState({ email: "", password: "" })
+    const [formData, setFormData] = useState({ loginId: "", password: "" })
     const [error, setError] = useState("")
     const { login } = useUser()
     const navigate = useNavigate()
@@ -33,8 +33,8 @@ function LoginPage() {
                         <label className="text-sm font-medium text-gray-700">Email or Username</label>
                         <input
                             type="text"
-                            name="email"
-                            value={formData.email}
+                            name="loginId"
+                            value={formData.loginId}
                             onChange={handleChange}
                             className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter email or username"
@@ -61,9 +61,9 @@ function LoginPage() {
 
                     <p className="text-sm text-center text-gray-500">
                         Don`t have an account?{" "}
-                        <a href="/register" className="text-blue-500 hover:underline font-medium">
+                        <Link to="/register" className="text-blue-500 hover:underline font-medium">
                             Register
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>

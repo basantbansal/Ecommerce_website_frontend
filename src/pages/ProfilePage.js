@@ -1,19 +1,29 @@
 import { useUser } from "../context/user.js"
 import { useNavigate } from "react-router-dom"
+import { useEffect } from "react"
 import Button from "../components/Button"
 
 function ProfilePage() {
-    const { user, logout } = useUser()
+    const { user, logout, isLoadingUser } = useUser()
     const navigate = useNavigate()
 
-    if (!user) {
-        navigate("/login")
-        return null
-    }
+    useEffect(() => {
+        if (!isLoadingUser && !user) {
+            navigate("/login")
+        }
+    }, [user, isLoadingUser, navigate])
 
     const handleLogout = async () => {
         await logout()
         navigate("/login")
+    }
+
+    if (isLoadingUser || !user) {
+        return (
+            <div className="flex justify-center items-center h-[60vh] text-gray-500">
+                Loading profile...
+            </div>
+        )
     }
 
     return (
@@ -45,6 +55,7 @@ function ProfilePage() {
                 {/* Details */}
                 <div className="flex flex-col gap-2 text-sm text-gray-700 mb-6">
                     <p><span className="font-medium">Email:</span> {user.email}</p>
+                    <p><span className="font-medium">Role:</span> {user.role}</p>
                 </div>
 
                 <Button danger outline onClick={handleLogout} className="w-full justify-center">

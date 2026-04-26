@@ -3,6 +3,10 @@ button > svg {
   margin-right: 5px;
 }
 
+.icon-no-margin {
+  margin-right: 0;
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);

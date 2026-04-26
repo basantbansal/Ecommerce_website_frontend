@@ -1,9 +1,12 @@
 import { useContext } from "react";
 import CartContext from "../context/cart";
 import Button from "../components/Button";
+import { useState } from "react";
 
 function BillingPage({ showSuccess }) {
   const { cartItems, clearCart } = useContext(CartContext);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalItems = cartItems.reduce(
     (sum, item) => sum + item.quantity,
@@ -15,9 +18,19 @@ function BillingPage({ showSuccess }) {
     0
   );
 
-  const handlePurchase = () => {
-    clearCart();
-    showSuccess();
+  const handlePurchase = async () => {
+    try {
+      setIsSubmitting(true);
+      setError("");
+      await clearCart();
+      showSuccess();
+    } catch (purchaseError) {
+      setError(
+        purchaseError.response?.data?.message || "Unable to complete purchase"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -41,13 +54,18 @@ function BillingPage({ showSuccess }) {
         </div>
       </div>
 
+      {error && (
+        <p className="mt-4 text-sm text-red-500">{error}</p>
+      )}
+
       <Button
         success
         rounded
         className="w-full justify-center mt-6"
+        disabled={isSubmitting}
         onClick={handlePurchase}
       >
-        Purchase
+        {isSubmitting ? "Processing..." : "Purchase"}
       </Button>
     </div>
   );

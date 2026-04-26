@@ -36,7 +36,7 @@ function CartPage() {
           <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
 
           {cartItems.map(item => (
-            <CartShowItems key={item.id} item={item} />
+            <CartShowItems key={item._id || item.productId || item.id} item={item} />
           ))}
         </div>
 

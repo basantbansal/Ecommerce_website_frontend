@@ -3,10 +3,23 @@ import PurchasedContext from "../context/Purchased";
 import {useNavigate} from 'react-router-dom';
 
 function PurchasedPage() {
-  const { purchases } = useContext(PurchasedContext);
-const navigate = useNavigate();
+  const { purchases, isPurchasesLoading } = useContext(PurchasedContext);
+  const navigate = useNavigate();
+
   const handleClickImage = (item)=>{
-    navigate(`/product/${item.id}`)
+    const productId = item._id || item.productId || item.id;
+
+    if (productId) {
+      navigate(`/product/${productId}`)
+    }
+  }
+
+  if (isPurchasesLoading) {
+    return (
+      <div className="flex justify-center items-center h-[60vh] text-gray-500">
+        Loading your purchases...
+      </div>
+    );
   }
 
   if (purchases.length === 0) {
@@ -54,7 +67,7 @@ const navigate = useNavigate();
             {/* ITEMS */}
             {purchase.items.map(item => (
               <div
-                key={item.id}
+                key={item._id || item.productId || item.id}
                 className="grid grid-cols-6 items-center py-4 border-b last:border-b-0"
               >
                 <div className="col-span-3 flex items-center gap-4">

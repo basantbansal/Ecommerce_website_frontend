@@ -1,10 +1,11 @@
 // RegisterPage.jsx
 import { useState } from "react";
 import Button from "../components/Button";
-import { api } from "../api.js"
-import { Link } from "react-router-dom"
+import { registerUser } from "../api.js"
+import { Link, useNavigate } from "react-router-dom"
 
 function RegisterPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
@@ -28,9 +29,10 @@ function RegisterPage() {
         formDataToSend.append("avatar", avatar)          // file
         formDataToSend.append("coverImage", coverImage)  // file
 
-        const response = await api.post("/api/v1/users/register", formDataToSend)
+        const response = await registerUser(formDataToSend)
         console.log(response.data)
         alert("Registered successfully!")
+        navigate("/login")
 
     } catch (error) {
         console.log(error)

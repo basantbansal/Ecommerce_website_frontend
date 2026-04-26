@@ -7,7 +7,7 @@ import Button from "../components/Button";
 import PurchasedContext from '../context/Purchased';
 
 function ItemDetails() {
-  const {addPurchase} = useContext(PurchasedContext);
+  const { purchaseItems } = useContext(PurchasedContext);
   const { id } = useParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,32 +16,45 @@ function ItemDetails() {
   const navigate = useNavigate();
 
   const isInCart = 
-  item && cartItems.some(cartItem => cartItem.id === item.id);
+  item && cartItems.some(cartItem => (cartItem._id || cartItem.productId || cartItem.id) === (item._id || item.id));
 
 
   useEffect(() => {
     const loadItem = async () => {
-      const data = await fetchItemById(id);
-      setItem(data);
-      setLoading(false);
+      try {
+        const data = await fetchItemById(id);
+        setItem(data);
+      } catch (error) {
+        setItem(null);
+      } finally {
+        setLoading(false);
+      }
     };
     loadItem();
   }, [id]);
 
-  const handleClickButton = (item) => {
-    createItem(item);
-    setShowPopup("✅ Item added to cart");       
+  const handleClickButton = async (item) => {
+    try {
+      await createItem(item);
+      setShowPopup("✅ Item added to cart");
+    } catch (error) {
+      setShowPopup(error.response?.data?.message || "Unable to add item to cart");
+    }
   };
   
- const handlePurchase = () => {
-  addPurchase([
-    {
-      ...item,
-      quantity: 1
-    }
-  ]);
+ const handlePurchase = async () => {
+  try {
+    await purchaseItems([
+      {
+        ...item,
+        quantity: 1
+      }
+    ]);
 
-  setShowPopup("✅ Purchase completed successfully!");
+    setShowPopup("✅ Purchase completed successfully!");
+  } catch (error) {
+    setShowPopup(error.response?.data?.message || "Unable to complete purchase");
+  }
 };
 
   
@@ -60,6 +73,39 @@ function ItemDetails() {
       </div>
     );
   }
+
+  const reviewCount = item.reviews?.length ?? 0;
+  const ratingValue =
+    typeof item.rating === "number" ? item.rating.toFixed(2) : "N/A";
+  const filledStars = Math.max(
+    0,
+    Math.min(5, Math.round(Number(item.rating) || 0))
+  );
+  const originalPrice = item.discountPercentage
+    ? (item.price / (1 - item.discountPercentage / 100)).toFixed(2)
+    : null;
+  const isOutOfStock = item.stock === 0;
+
+  const productFacts = [
+    { label: "SKU", value: item.sku },
+    { label: "Stock", value: typeof item.stock === "number" ? `${item.stock} left` : null },
+    { label: "Weight", value: item.weight ? `${item.weight} kg` : null },
+    {
+      label: "Dimensions",
+      value: item.dimensions
+        ? `${item.dimensions.width}W x ${item.dimensions.height}H x ${item.dimensions.depth}D`
+        : null,
+    },
+    { label: "Shipping", value: item.shippingInformation },
+    { label: "Warranty", value: item.warrantyInformation },
+    { label: "Returns", value: item.returnPolicy },
+    {
+      label: "Minimum Order",
+      value: item.minimumOrderQuantity
+        ? `${item.minimumOrderQuantity} units`
+        : null,
+    },
+  ].filter(fact => fact.value);
 
   return (
     <>
@@ -84,10 +130,18 @@ function ItemDetails() {
           {/* DETAILS SECTION */}
           <div className="flex flex-col">
 
-            {/* CATEGORY */}
-            <span className="inline-block w-fit mb-3 px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700 capitalize">
-              {item.category}
-            </span>
+            {/* CATEGORY + STATUS */}
+            <div className="flex flex-wrap items-center gap-3 mb-3">
+              <span className="inline-block w-fit px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700 capitalize">
+                {item.category}
+              </span>
+
+              {item.availabilityStatus && (
+                <span className="inline-block w-fit px-3 py-1 text-sm rounded-full bg-green-100 text-green-700">
+                  {item.availabilityStatus}
+                </span>
+              )}
+            </div>
 
             {/* TITLE */}
             <h1 className="text-3xl font-semibold text-gray-800 leading-snug">
@@ -97,24 +151,35 @@ function ItemDetails() {
             {/* RATING */}
             <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center text-yellow-400">
-                {"★".repeat(Math.round(item.rating.rate))}
+                {"★".repeat(filledStars)}
                 <span className="text-gray-300 ml-1">
-                  {"★".repeat(5 - Math.round(item.rating.rate))}
+                  {"★".repeat(5 - filledStars)}
                 </span>
               </div>
               <span className="text-sm text-gray-600">
-                {item.rating.rate} ({item.rating.count} reviews)
+                {ratingValue} ({reviewCount} reviews)
               </span>
             </div>
 
             {/* PRICE */}
-            <div className="mt-6 bg-white rounded-xl shadow p-5 w-fit">
+            <div className="mt-6 bg-white rounded-xl shadow p-5 w-fit min-w-[220px]">
               <p className="text-3xl font-bold text-green-600">
                 ${item.price}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Inclusive of all taxes
-              </p>
+              <div className="mt-2 space-y-1 text-sm text-gray-500">
+                {originalPrice && (
+                  <p>
+                    MRP <span className="line-through">${originalPrice}</span>
+                    {" · "}
+                    <span className="text-green-600 font-medium">
+                      {item.discountPercentage}% off
+                    </span>
+                  </p>
+                )}
+                {item.minimumOrderQuantity && (
+                  <p>Minimum order: {item.minimumOrderQuantity}</p>
+                )}
+              </div>
             </div>
 
             {/* DESCRIPTION */}
@@ -125,6 +190,43 @@ function ItemDetails() {
               <p className="text-gray-600 leading-relaxed">
                 {item.description}
               </p>
+            </div>
+
+            {/* TAGS */}
+            {item.tags?.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                  Tags
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {item.tags.map(tag => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* PRODUCT FACTS */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                Product Details
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {productFacts.map(fact => (
+                  <div
+                    key={fact.label}
+                    className="bg-white rounded-xl shadow-sm border p-4"
+                  >
+                    <p className="text-sm text-gray-500">{fact.label}</p>
+                    <p className="text-gray-800 font-medium mt-1">{fact.value}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* ACTION BUTTONS */}
@@ -141,9 +243,10 @@ function ItemDetails() {
               <Button
                 primary
                 className="mt-auto w-full justify-center"
+                disabled={isOutOfStock}
                 onClick={() => handleClickButton(item)}
               >
-                Add to Cart
+                {isOutOfStock ? "Out of Stock" : "Add to Cart"}
               </Button>
               )}
 
@@ -151,18 +254,11 @@ function ItemDetails() {
                 success
                 rounded
                 className="w-full justify-center mt-6"
+                disabled={isOutOfStock}
                 onClick={handlePurchase}
                >
-                Purchase
+                {isOutOfStock ? "Unavailable" : "Purchase"}
               </Button>
-            </div>
-
-            {/* TRUST INFO */}
-            <div className="mt-10 grid grid-cols-2 gap-4 text-sm text-gray-600">
-              <p>✔ Free delivery in 3–5 days</p>
-              <p>✔ Cash on Delivery available</p>
-              <p>✔ 7-day replacement policy</p>
-              <p>✔ Secure payments</p>
             </div>
 
           </div>

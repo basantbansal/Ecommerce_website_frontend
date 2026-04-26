@@ -8,7 +8,7 @@ function CartShowItems({ item }) {
   const navigate = useNavigate();
 
   const handleClickImage = (item)=>{
-    navigate(`/product/${item.id}`)
+    navigate(`/product/${item._id || item.productId || item.id}`)
   }
 
   return (
