@@ -1,5 +1,5 @@
 // RegisterPage.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../components/Button";
 import { registerUser } from "../api.js"
 import { Link, useNavigate } from "react-router-dom"
@@ -15,8 +15,29 @@ function RegisterPage() {
   const [avatar, setAvatar] = useState(null);
   const [coverImage, setCoverImage] = useState(null);
 
+  // Load saved data from localStorage when the component mounts
+  useEffect(() => {
+    const savedData = localStorage.getItem("registerFormData");
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setFormData((prev) => ({ ...prev, ...parsedData }));
+      } catch (error) {
+        console.error("Error loading saved form data:", error);
+      }
+    }
+  }, []);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const updatedData = { ...formData, [e.target.name]: e.target.value };
+    setFormData(updatedData);
+    // Save only the text fields to localStorage
+    const dataToSave = {
+      fullName: updatedData.fullName,
+      username: updatedData.username,
+      email: updatedData.email,
+    };
+    localStorage.setItem("registerFormData", JSON.stringify(dataToSave));
   };
 
   const handleSubmit = async () => {
@@ -31,7 +52,9 @@ function RegisterPage() {
 
         const response = await registerUser(formDataToSend)
         console.log(response.data)
-        alert("Registered successfully!")
+        alert("Registered successfully! Check your inbox and verify your email before logging in.")
+        // Clear localStorage on success
+        localStorage.removeItem("registerFormData");
         navigate("/login")
 
     } catch (error) {
@@ -89,9 +112,11 @@ function RegisterPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              minLength="8"
               className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter password"
             />
+            <p className="mt-1 text-xs text-gray-500">At least 8 characters, including uppercase, lowercase, and a number.</p>
           </div>
 
           <div>

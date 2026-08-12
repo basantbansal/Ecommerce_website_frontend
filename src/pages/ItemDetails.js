@@ -1,5 +1,5 @@
 import { useParams,useNavigate } from "react-router-dom";
-import { useEffect, useState,useContext } from "react";
+import { useEffect, useRef, useState,useContext } from "react";
 import { fetchItemById } from "../api";
 import CartContext from "../context/cart";
 import PopUp from "../components/PopUp";
@@ -13,6 +13,7 @@ function ItemDetails() {
   const [loading, setLoading] = useState(true);
   const [showPopup, setShowPopup] = useState(''); // empty means no popUp , then we got the messages LOL
   const { createItem,cartItems } = useContext(CartContext);
+  const idempotencyKeyRef = useRef("");
   const navigate = useNavigate();
 
   const isInCart = 
@@ -52,15 +53,26 @@ function ItemDetails() {
   
  const handlePurchase = async () => {
   try {
-    await purchaseItems([
+    idempotencyKeyRef.current = idempotencyKeyRef.current || crypto.randomUUID();
+    const order = await purchaseItems([
       {
         ...item,
         quantity: 1
       }
-    ]);
+    ], idempotencyKeyRef.current);
+    idempotencyKeyRef.current = "";
+
+    const purchasedItem = order.items.find(
+      (orderItem) => (orderItem._id || orderItem.productId || orderItem.id) === (item._id || item.id)
+    );
+
+    if (purchasedItem) {
+      setItem(purchasedItem);
+    }
 
     setShowPopup("✅ Purchase completed successfully!");
   } catch (error) {
+    idempotencyKeyRef.current = "";
     setShowPopup(error.response?.data?.message || "Unable to complete purchase");
   }
 };

@@ -1,7 +1,7 @@
 import { GoHomeFill } from "react-icons/go";
 import { FaBoxOpen } from "react-icons/fa";
 import { FiSearch, FiX } from "react-icons/fi";
-import { MdOutlineInventory } from "react-icons/md";
+import { MdAdminPanelSettings, MdOutlineInventory } from "react-icons/md";
 import Icon from "./Icon";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -77,6 +77,16 @@ function NavigationHeader() {
                         <MdOutlineInventory className="text-xl" />
                         <span className="font-semibold">Seller</span>
                     </Icon>
+
+                    {user?.role === "admin" && (
+                        <Icon
+                            onClick={handleClick("/admin")}
+                            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition cursor-pointer"
+                        >
+                            <MdAdminPanelSettings className="text-xl" />
+                            <span className="font-semibold">Admin</span>
+                        </Icon>
+                    )}
 
                 </div>
 

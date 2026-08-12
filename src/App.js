@@ -11,6 +11,10 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage"
 import SellerPage from "./pages/SellerPage"
+import AdminPage from "./pages/AdminPage"
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"
+import ResetPasswordPage from "./pages/ResetPasswordPage"
+import VerifyEmailPage from "./pages/VerifyEmailPage"
 // import Portfolio from "./pages/Portfolio";
 
 function App() {
@@ -26,7 +30,11 @@ function App() {
         <Route path="/Purchased" element={<PurchasedPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/seller" element={<SellerPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         {/* <Route path="/ShowMe" element={<ShowMe />} /> */}
       </Routes>
     </>

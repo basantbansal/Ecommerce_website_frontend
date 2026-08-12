@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 import { useUser } from "../context/user.js"
-import { createProduct, importDummyProducts, resetProductCache } from "../api.js"
+import { createProduct, resetProductCache } from "../api.js"
 
 function SellerPage() {
     const navigate = useNavigate()
@@ -19,7 +19,6 @@ function SellerPage() {
     const [message, setMessage] = useState("")
     const [error, setError] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isImporting, setIsImporting] = useState(false)
 
     useEffect(() => {
         if (!isLoadingUser && !user) {
@@ -76,21 +75,6 @@ function SellerPage() {
         }
     }
 
-    const handleImportDummyProducts = async () => {
-        try {
-            setError("")
-            setMessage("")
-            setIsImporting(true)
-            const response = await importDummyProducts()
-            resetProductCache()
-            setMessage(`${response.data.data.length} dummy products imported`)
-        } catch (err) {
-            setError(err.response?.data?.message || "Unable to import dummy products")
-        } finally {
-            setIsImporting(false)
-        }
-    }
-
     if (isLoadingUser || !user) {
         return (
             <div className="flex justify-center items-center h-[60vh] text-gray-500">
@@ -121,18 +105,6 @@ function SellerPage() {
                     </div>
                 ) : (
                     <>
-                    {user.role === "admin" && (
-                        <div className="border rounded-md p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div>
-                                <h2 className="font-semibold text-gray-800">Development Import</h2>
-                                <p className="text-sm text-gray-500">Store dummy products in MongoDB once.</p>
-                            </div>
-                            <Button secondary onClick={handleImportDummyProducts} disabled={isImporting}>
-                                {isImporting ? "Importing..." : "Import Dummy Products"}
-                            </Button>
-                        </div>
-                    )}
-
                     {user.role === "seller" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

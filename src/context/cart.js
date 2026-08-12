@@ -80,8 +80,8 @@ function CartProvider({ children }) {
   };
 
   // purchase + clear cart
-  const clearCart = async () => {
-    const order = await purchaseItems();
+  const clearCart = async (idempotencyKey) => {
+    const order = await purchaseItems(undefined, idempotencyKey); // undefined here because items are taken from cart on backend, so we don't need to pass them explicitly  
 
     setCartItems([]);
     return order;

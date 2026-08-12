@@ -1,5 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { createOrder, getOrders } from "../api";
+import {
+  createOrder,
+  createRazorpayOrder,
+  getOrders,
+  resetProductCache,
+  verifyRazorpayPayment
+} from "../api";
 import { useUser } from "./user";
 
 const PurchasedContext = createContext();
@@ -55,13 +61,61 @@ export function PurchasedProvider({ children }) {
     loadPurchases();
   }, [user, isLoadingUser, loadPurchases]);
 
-  const purchaseItems = async (items) => {
+  const loadRazorpayCheckout = () => {
+    return new Promise((resolve, reject) => {
+      if (window.Razorpay) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = resolve;
+      script.onerror = () => reject(new Error("Unable to load Razorpay checkout"));
+      document.body.appendChild(script);
+    });
+  };
+
+  const openRazorpayCheckout = async (checkout) => {
+    await loadRazorpayCheckout();
+
+    return await new Promise((resolve, reject) => {
+      const razorpay = new window.Razorpay({
+        key: checkout.keyId,
+        amount: checkout.amount,
+        currency: checkout.currency,
+        name: checkout.name,
+        description: checkout.description,
+        order_id: checkout.razorpayOrderId,
+        prefill: {
+          name: user?.fullName,
+          email: user?.email
+        },
+        handler: resolve,
+        modal: {
+          ondismiss: () => reject(new Error("Payment was cancelled"))
+        },
+        theme: {
+          color: "#3b82f6"
+        }
+      });
+
+      razorpay.open();
+    });
+  };
+
+  const purchaseItems = async (items, idempotencyKey = crypto.randomUUID()) => { // here items are undefined because we are taking them from cart on backend, so we don't need to pass them explicitly
     const orderItems = items?.map((item) => ({
       productId: item._id || item.productId || item.id,
       quantity: item.quantity || 1
     }));
-    const response = await createOrder(orderItems);
-    const order = formatOrders([response.data.data])[0];
+    const response = await createOrder(orderItems, idempotencyKey); // here orderItems are undefined because we are taking them from cart on backend, so we don't need to pass them explicitly
+    const payment = response.data.data.payment;
+    const razorpayOrderResponse = await createRazorpayOrder(payment._id);
+    const razorpayPayment = await openRazorpayCheckout(razorpayOrderResponse.data.data);
+    const confirmedPayment = await verifyRazorpayPayment(payment._id, razorpayPayment);
+    resetProductCache();
+    const order = formatOrders([confirmedPayment.data.data])[0];
 
     setPurchases((prev) => [
       order,

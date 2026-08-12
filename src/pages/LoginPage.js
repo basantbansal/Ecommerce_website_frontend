@@ -2,10 +2,13 @@ import { useState } from "react"
 import { useUser } from "../context/user.js"
 import { Link, useNavigate } from "react-router-dom"
 import Button from "../components/Button"
+import { resendVerificationEmail } from "../api.js"
 
 function LoginPage() {
     const [formData, setFormData] = useState({ loginId: "", password: "" })
     const [error, setError] = useState("")
+    const [verificationMessage, setVerificationMessage] = useState("")
+    const [needsVerification, setNeedsVerification] = useState(false)
     const { login } = useUser()
     const navigate = useNavigate()
 
@@ -16,10 +19,23 @@ function LoginPage() {
     const handleSubmit = async () => {
         try {
             setError("")
+            setVerificationMessage("")
+            setNeedsVerification(false)
             await login(formData)
             navigate("/")  // redirect to home after login
         } catch (err) {
-            setError(err.response?.data?.message || "Login failed")
+            const message = err.response?.data?.message || "Login failed"
+            setError(message)
+            setNeedsVerification(err.response?.status === 403)
+        }
+    }
+
+    const handleResendVerification = async () => {
+        try {
+            const response = await resendVerificationEmail(formData.loginId)
+            setVerificationMessage(response.data?.message || "If that account needs verification, a new link has been sent.")
+        } catch {
+            setVerificationMessage("Unable to send a verification link. Please try again.")
         }
     }
 
@@ -54,10 +70,23 @@ function LoginPage() {
                     </div>
 
                     {error && <p className="text-sm text-red-500">{error}</p>}
+                    {needsVerification && (
+                        <div className="text-sm text-center">
+                            <p className="text-gray-600">Use your email address above to request a new verification link.</p>
+                            <button type="button" onClick={handleResendVerification} className="mt-1 text-blue-500 hover:underline">
+                                Resend verification email
+                            </button>
+                        </div>
+                    )}
+                    {verificationMessage && <p className="text-sm text-center text-gray-600">{verificationMessage}</p>}
 
                     <Button primary onClick={handleSubmit} className="mt-2 w-full justify-center">
                         Login
                     </Button>
+
+                    <Link to="/forgot-password" className="text-sm text-center text-blue-500 hover:underline">
+                        Forgot password?
+                    </Link>
 
                     <p className="text-sm text-center text-gray-500">
                         Don`t have an account?{" "}

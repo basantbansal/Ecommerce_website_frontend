@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useRef } from "react";
 import CartContext from "../context/cart";
 import Button from "../components/Button";
 import { useState } from "react";
@@ -7,6 +7,7 @@ function BillingPage({ showSuccess }) {
   const { cartItems, clearCart } = useContext(CartContext);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const idempotencyKeyRef = useRef("");
 
   const totalItems = cartItems.reduce(
     (sum, item) => sum + item.quantity,
@@ -22,9 +23,12 @@ function BillingPage({ showSuccess }) {
     try {
       setIsSubmitting(true);
       setError("");
-      await clearCart();
+      idempotencyKeyRef.current = idempotencyKeyRef.current || crypto.randomUUID();
+      await clearCart(idempotencyKeyRef.current);
+      idempotencyKeyRef.current = "";
       showSuccess();
     } catch (purchaseError) {
+      idempotencyKeyRef.current = "";
       setError(
         purchaseError.response?.data?.message || "Unable to complete purchase"
       );

@@ -1,6 +1,15 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const LOCAL_API_URL = "http://localhost:8000";
+const PRODUCTION_API_URL = "https://my-backend-6vy3.onrender.com";
+
+const isLocalFrontend =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (isLocalFrontend ? LOCAL_API_URL : PRODUCTION_API_URL);
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -21,6 +30,12 @@ export const loginUser = async (loginData) => {
   return await api.post("/api/v1/users/login", loginData);
 };
 
+export const forgotPassword = async (email) => api.post("/api/v1/users/forgot-password", { email });
+export const resetPassword = async (token, password) => api.post("/api/v1/users/reset-password", { token, password });
+export const verifyEmail = async (token) => api.post("/api/v1/users/verify-email", { token });
+export const resendVerificationEmail = async (email) => api.post("/api/v1/users/resend-verification", { email });
+export const changePassword = async (currentPassword, newPassword) => api.post("/api/v1/users/change-password", { currentPassword, newPassword });
+
 export const logoutUser = async () => {
   return await api.post("/api/v1/users/logout");
 };
@@ -39,6 +54,14 @@ export const createProduct = async (productData) => {
 
 export const importDummyProducts = async () => {
   return await api.post("/api/v1/products/import-dummy-products");
+};
+
+export const updateProductStock = async (productId, stock) => {
+  return await api.patch(`/api/v1/products/${productId}/stock`, { stock });
+};
+
+export const deleteProduct = async (productId) => {
+  return await api.delete(`/api/v1/products/${productId}`);
 };
 
 export const getCart = async () => {
@@ -65,8 +88,33 @@ export const getOrders = async () => {
   return await api.get("/api/v1/orders");
 };
 
-export const createOrder = async (items) => {
-  return await api.post("/api/v1/orders", { items });
+export const createOrder = async (items, idempotencyKey) => { 
+  return await api.post( // things we are giving to api are items and idempotencyKey, but since we are taking items from cart on backend, we don't need to pass them explicitly, so items will be undefined
+    "/api/v1/orders",
+    { items },
+    {
+      headers: idempotencyKey
+        ? {
+            "Idempotency-Key": idempotencyKey
+          }
+        : {}
+    }
+  );
+};
+
+export const confirmPayment = async (paymentId) => {
+  return await api.post(`/api/v1/payments/${paymentId}/confirm`);
+};
+
+export const createRazorpayOrder = async (paymentId) => {
+  return await api.post(`/api/v1/payments/${paymentId}/razorpay-order`);
+};
+
+export const verifyRazorpayPayment = async (paymentId, razorpayPayment) => {
+  return await api.post(
+    `/api/v1/payments/${paymentId}/razorpay-verify`,
+    razorpayPayment
+  );
 };
 
 const fetchItems = async ({ forceRefresh = false } = {}) => {
