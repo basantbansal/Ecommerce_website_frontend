@@ -11,8 +11,9 @@ function ForgotPasswordPage() {
     try {
       const response = await forgotPassword(email);
       setMessage(response.data.message);
-    } catch {
-      setMessage("Unable to request a reset link. Please try again.");
+    } catch (error) {
+      console.error("Forgot password error:", error.response?.data || error.message);
+      setMessage(error.response?.data?.message || "Unable to request a reset link. Please try again.");
     }
   };
 
