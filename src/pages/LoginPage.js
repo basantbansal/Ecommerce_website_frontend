@@ -3,13 +3,14 @@ import { useUser } from "../context/user.js"
 import { Link, useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 import { resendVerificationEmail } from "../api.js"
+import { GoogleLogin } from '@react-oauth/google'
 
 function LoginPage() {
     const [formData, setFormData] = useState({ loginId: "", password: "" })
     const [error, setError] = useState("")
     const [verificationMessage, setVerificationMessage] = useState("")
     const [needsVerification, setNeedsVerification] = useState(false)
-    const { login } = useUser()
+    const { login, googleLogin } = useUser()
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -36,6 +37,16 @@ function LoginPage() {
             setVerificationMessage(response.data?.message || "If that account needs verification, a new link has been sent.")
         } catch {
             setVerificationMessage("Unable to send a verification link. Please try again.")
+        }
+    }
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setError("")
+            await googleLogin(credentialResponse.credential)
+            navigate("/")
+        } catch (err) {
+            setError(err.response?.data?.message || "Google Login failed")
         }
     }
 
@@ -84,7 +95,18 @@ function LoginPage() {
                         Login
                     </Button>
 
-                    <Link to="/forgot-password" className="text-sm text-center text-blue-500 hover:underline">
+                    <div className="flex items-center my-2 before:flex-1 before:border-t before:border-gray-300 before:mt-0.5 after:flex-1 after:border-t after:border-gray-300 after:mt-0.5">
+                        <p className="text-center font-semibold mx-4 mb-0 text-sm text-gray-500">OR</p>
+                    </div>
+
+                    <div className="flex justify-center w-full">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError("Google login failed")}
+                        />
+                    </div>
+
+                    <Link to="/forgot-password" className="text-sm text-center text-blue-500 hover:underline mt-2">
                         Forgot password?
                     </Link>
 

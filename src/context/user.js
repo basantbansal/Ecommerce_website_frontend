@@ -1,6 +1,6 @@
 // src/context/user.js
 import { createContext, useContext, useEffect, useState } from "react";
-import { becomeSellerApi, getCurrentUser, loginUser, logoutUser } from "../api.js";
+import { becomeSellerApi, getCurrentUser, loginUser, logoutUser, googleLoginApi } from "../api.js";
 
 const UserContext = createContext();
 
@@ -29,6 +29,12 @@ export function UserProvider({ children }) {
         return response
     }
 
+    const googleLogin = async (token) => {
+        const response = await googleLoginApi(token)
+        setUser(response.data.data.user)
+        return response
+    }
+
     const logout = async () => {
         try {
             await logoutUser()
@@ -44,7 +50,7 @@ export function UserProvider({ children }) {
     }
 
     return (
-        <UserContext.Provider value={{ user, setUser, login, logout, becomeSeller, hydrateUser, isLoadingUser }}>
+        <UserContext.Provider value={{ user, setUser, login, googleLogin, logout, becomeSeller, hydrateUser, isLoadingUser }}>
             {children}
         </UserContext.Provider>
     )

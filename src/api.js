@@ -30,6 +30,10 @@ export const loginUser = async (loginData) => {
   return await api.post("/api/v1/users/login", loginData);
 };
 
+export const googleLoginApi = async (token) => {
+  return await api.post("/api/v1/users/google-login", { token });
+};
+
 export const forgotPassword = async (email) => api.post("/api/v1/users/forgot-password", { email });
 export const resetPassword = async (token, password) => api.post("/api/v1/users/reset-password", { token, password });
 export const verifyEmail = async (token) => api.post("/api/v1/users/verify-email", { token });

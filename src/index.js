@@ -7,15 +7,19 @@ import { CartProvider } from "./context/cart"
 import { PurchasedProvider } from "./context/Purchased"
 import { UserProvider } from "./context/user"
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <BrowserRouter>
-        <UserProvider>
-            <PurchasedProvider>
-                <CartProvider>
-                    <App />
-                </CartProvider>
-            </PurchasedProvider>
-        </UserProvider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <BrowserRouter>
+            <UserProvider>
+                <PurchasedProvider>
+                    <CartProvider>
+                        <App />
+                    </CartProvider>
+                </PurchasedProvider>
+            </UserProvider>
+        </BrowserRouter>
+    </GoogleOAuthProvider>
 )
 
