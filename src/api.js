@@ -39,6 +39,7 @@ export const resetPassword = async (token, password) => api.post("/api/v1/users/
 export const verifyEmail = async (token) => api.post("/api/v1/users/verify-email", { token });
 export const resendVerificationEmail = async (email) => api.post("/api/v1/users/resend-verification", { email });
 export const changePassword = async (currentPassword, newPassword) => api.post("/api/v1/users/change-password", { currentPassword, newPassword });
+export const updateAccountDetails = async (fullName) => api.patch("/api/v1/users/update-account", { fullName });
 
 export const logoutUser = async () => {
   return await api.post("/api/v1/users/logout");

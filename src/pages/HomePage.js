@@ -5,14 +5,15 @@ import CartContext from "../context/cart";
 import PopUp from "../components/PopUp";
 import fetchItems from '../api';
 import HomeShowItems from './HomeShowItems';
-import {useNavigate, useSearchParams} from 'react-router-dom';
+import {useNavigate, useSearchParams, useLocation} from 'react-router-dom';
 
 function HomePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { createItem } = useContext(CartContext); // here we are using the createItem function from the CartContext to add items to the cart when the button is clicked ...
   const [currItems, setItems] = useState([]); // here we are fetching currItems through an external api or url... 
-  const [showPopup, setShowPopup] = useState(""); // this is for showing the popUp when we click the add to cart button , and it will be false when we close the popUp or after some time ...
+  const [showPopup, setShowPopup] = useState(location.state?.message || ""); // this is for showing the popUp when we click the add to cart button , and it will be false when we close the popUp or after some time ...
   const [error, setError] = useState("");
   const searchTerm = (searchParams.get("search") || "").trim().toLowerCase();
   //const [showDetails,setShowDetails] = useState(null); might be used for making the handleClickImage in state-design way ...
