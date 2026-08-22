@@ -5,6 +5,7 @@ import Button from "../components/Button"
 import PopUp from "../components/PopUp"
 import { resendVerificationEmail } from "../api.js"
 import { GoogleLogin } from '@react-oauth/google'
+import { Turnstile } from '@marsidev/react-turnstile'
 
 function LoginPage() {
     const [formData, setFormData] = useState({ loginId: "", password: "" })
@@ -12,6 +13,7 @@ function LoginPage() {
     const [verificationMessage, setVerificationMessage] = useState("")
     const [needsVerification, setNeedsVerification] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [turnstileToken, setTurnstileToken] = useState(null)
     const { login, googleLogin } = useUser()
     const navigate = useNavigate()
     const location = useLocation()
@@ -29,11 +31,15 @@ function LoginPage() {
     }
 
     const handleSubmit = async () => {
+        if (!turnstileToken) {
+            setError("Please complete the security check.")
+            return
+        }
         try {
             setError("")
             setVerificationMessage("")
             setNeedsVerification(false)
-            await login(formData)
+            await login({ ...formData, turnstileToken })
             navigate("/", { state: { message: "Logged in successfully" } })  // redirect to home after login
         } catch (err) {
             const message = err.response?.data?.message || "Login failed"
@@ -126,6 +132,15 @@ function LoginPage() {
                         </div>
                     )}
                     {verificationMessage && <p className="text-sm text-center text-gray-600">{verificationMessage}</p>}
+
+                    <div className="flex justify-center my-2">
+                        <Turnstile
+                            siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                            onSuccess={(token) => setTurnstileToken(token)}
+                            onError={() => setError("Security check failed")}
+                            onExpire={() => setTurnstileToken(null)}
+                        />
+                    </div>
 
                     <Button primary onClick={handleSubmit} className="mt-2 w-full justify-center">
                         Login
